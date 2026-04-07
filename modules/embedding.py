@@ -1,8 +1,18 @@
+import functools
+from math import sqrt
+
 import torch
 import torch.nn as nn
 from typing import Dict, List, Optional
 from compat.jagged_tensor import JaggedTensor, KeyedJaggedTensor
 from compat.embedding_config import EmbeddingConfig
+
+
+def _default_embedding_init_fn(num_embeddings: int) -> callable:
+    """Match TorchRec EmbeddingConfig default: uniform(-sqrt(1/N), sqrt(1/N))."""
+    bound = sqrt(1.0 / num_embeddings)
+    return functools.partial(torch.nn.init.uniform_, a=-bound, b=bound)
+
 
 class MUSAEmbeddingCollection(nn.Module):
     def __init__(self, configs: List[EmbeddingConfig], device: Optional[torch.device] = None):
@@ -13,8 +23,8 @@ class MUSAEmbeddingCollection(nn.Module):
             self.embeddings[config.name] = nn.Embedding(
                 config.num_embeddings, config.embedding_dim, device=device
             )
-            if config.init_fn is not None:
-                config.init_fn(self.embeddings[config.name].weight)
+            init_fn = config.init_fn or _default_embedding_init_fn(config.num_embeddings)
+            init_fn(self.embeddings[config.name].weight)
 
     def forward(self, features: KeyedJaggedTensor) -> Dict[str, JaggedTensor]:
         feature_dict = features.to_dict()

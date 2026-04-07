@@ -4,7 +4,7 @@ HSTU Training on MovieLens 20M -- config-matched to recsys-examples movielen_ran
 All hyperparameters match the original:
   batch_size=128, hidden_size=128, kv_channels=128, num_heads=4, num_layers=1,
   max_candidates=20, max_seq_len=200, prediction_head=[512,10], bf16,
-  dropout=0.0, adam(lr=1e-3, beta1=0.9, beta2=0.98), seed=1234
+  dropout=0.2, add_uvqk_bias=True, adam(lr=1e-3, beta1=0.9, beta2=0.98), seed=1234
 
 Usage:
     python train.py                          # defaults match original gin
@@ -40,7 +40,7 @@ def main():
     parser.add_argument("--num-layers", type=int, default=1)
     parser.add_argument("--num-tasks", type=int, default=1)
     parser.add_argument("--prediction-head", type=int, nargs="+", default=[512, 10])
-    parser.add_argument("--hidden-dropout", type=float, default=0.0)
+    parser.add_argument("--hidden-dropout", type=float, default=0.2)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--adam-beta1", type=float, default=0.9)
     parser.add_argument("--adam-beta2", type=float, default=0.98)
@@ -94,7 +94,7 @@ def main():
               f"{len(eval_dataset)} batches")
 
     # --- Model (matches original gin + trainer/utils.py) ---
-    HASH_SIZE = 200_000  # must match recsys-examples trainer/utils.py HASH_SIZE
+    HASH_SIZE = 10_000_000  # must match recsys-examples trainer/utils.py HASH_SIZE
 
     hstu_config = HSTUConfig(
         hidden_size=args.hidden_size,
@@ -104,9 +104,10 @@ def main():
         hidden_dropout=args.hidden_dropout,
         is_causal=True,
         kernel_backend=args.backend,
-        scaling_seqlen=args.max_seq_len,
+        scaling_seqlen=-1,
         bf16=use_bf16,
         fp16=False,
+        add_uvqk_bias=True,
         target_group_size=1,
         position_encoding_config=PositionEncodingConfig(
             num_position_buckets=8192,

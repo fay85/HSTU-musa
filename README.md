@@ -37,9 +37,11 @@ python train.py --device cpu --backend pytorch --nrows 500
 Both hstu-musa and the original use the same hyperparameters from `movielen_ranking.gin`:
 
 - batch_size=128, hidden_size=128, kv_channels=128, num_heads=4, num_layers=1
-- prediction_head=[512, 10], dropout=0.2, bf16
+- prediction_head=[512, 10], dropout=0.2, add_uvqk_bias=True, bf16
 - Adam(lr=1e-3, beta1=0.9, beta2=0.98), seed=1234
-- ML-20M: 3 embeddings (user_id, movie_id, rating), max_candidates=20
+- ML-20M: 3 embeddings (user_id, movie_id, rating), HASH_SIZE=10_000_000, max_candidates=20
+- Embedding init: uniform(-sqrt(1/N), sqrt(1/N)) matching TorchRec default
+- scaling_seqlen=-1 (use actual max_seqlen, matching original behavior)
 
 To compare loss curves, run this on MUSA and the original on CUDA with the same
 `processed_seqs.csv`, then compare `loss_hstu_musa.csv` step by step:

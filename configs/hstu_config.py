@@ -24,7 +24,7 @@ class HSTUConfig:
     kv_channels: int = 32
     num_attention_heads: int = 4
     num_layers: int = 2
-    hidden_dropout: float = 0.0
+    hidden_dropout: float = 0.2
     layernorm_epsilon: float = 1e-5
     is_causal: bool = True
     residual: bool = True
@@ -33,7 +33,7 @@ class HSTUConfig:
     kernel_backend: str = "pytorch"
     learnable_input_layernorm: bool = True
     learnable_output_layernorm: bool = True
-    add_uvqk_bias: bool = False
+    add_uvqk_bias: bool = True
     target_group_size: int = 1
     scaling_seqlen: int = -1
     sequence_parallel: bool = False
